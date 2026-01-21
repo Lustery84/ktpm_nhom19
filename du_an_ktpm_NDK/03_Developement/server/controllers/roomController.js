@@ -46,12 +46,7 @@ const roomController = {
           {
             model: HoKhau,
             as: 'hoKhau',
-            required: false,
-            include: [{
-              model: db.NhanKhau,
-              as: 'chuHoInfo',
-              required: false
-            }]
+            include: ['chuHoInfo']
           }
         ]
       });
@@ -78,12 +73,7 @@ const roomController = {
           {
             model: HoKhau,
             as: 'hoKhau',
-            required: false,
-            include: [{
-              model: db.NhanKhau,
-              as: 'chuHoInfo',
-              required: false
-            }]
+            include: ['chuHoInfo']
           }
         ]
       });
@@ -102,10 +92,10 @@ const roomController = {
   // Create a new room
   async createRoom(req, res) {
     try {
-      const { soPhong, tang, dienTich, hoKhauId, ngayBatDau, ngayKetThuc, trangThai, ghiChu, loaiPhong } = req.body;
+      const { soPhong, tang, dienTich, hoKhauId, ngayBatDau, ngayKetThuc, trangThai, ghiChu } = req.body;
       
       console.log('Creating room with data:', {
-        soPhong, tang, dienTich, hoKhauId, trangThai, loaiPhong
+        soPhong, tang, dienTich, hoKhauId, trangThai
       });
       
       // Check if room with same number already exists
@@ -120,14 +110,13 @@ const roomController = {
       // Create new room
       const newRoom = await Room.create({
         soPhong,
-        loaiPhong: loaiPhong || 'APARTMENT',
         tang,
         dienTich,
         hoKhauId: hoKhauIdInt,
         ngayBatDau: ngayBatDau || null,
         ngayKetThuc: ngayKetThuc || null,
-        trangThai: trangThai || 'AVAILABLE',
-        moTa: ghiChu || null
+        trangThai: trangThai || 'trong',
+        ghiChu
       });
       
       console.log('Room created successfully:', newRoom.id);
@@ -142,7 +131,7 @@ const roomController = {
   async updateRoom(req, res) {
     try {
       const { id } = req.params;
-      const { soPhong, tang, dienTich, hoKhauId, ngayBatDau, ngayKetThuc, trangThai, ghiChu, loaiPhong } = req.body;
+      const { soPhong, tang, dienTich, hoKhauId, ngayBatDau, ngayKetThuc, trangThai, ghiChu } = req.body;
       
       const room = await Room.findByPk(id);
       if (!room) {
@@ -161,22 +150,16 @@ const roomController = {
       const hoKhauIdInt = hoKhauId ? parseInt(hoKhauId) : null;
       
       // Update room
-      const updateData = {
+      await room.update({
         soPhong,
         tang,
         dienTich,
         hoKhauId: hoKhauIdInt,
-        ngayBatDau: ngayBatDau !== undefined ? ngayBatDau : null,
-        ngayKetThuc: ngayKetThuc !== undefined ? ngayKetThuc : null,
+        ngayBatDau: ngayBatDau || null,
+        ngayKetThuc: ngayKetThuc || null,
         trangThai,
-        moTa: ghiChu
-      };
-      
-      if (loaiPhong !== undefined) {
-        updateData.loaiPhong = loaiPhong;
-      }
-      
-      await room.update(updateData);
+        ghiChu
+      });
       
       res.json({ message: 'Cập nhật thông tin phòng thành công', room });
     } catch (error) {
@@ -256,7 +239,7 @@ const roomController = {
       });
       
       // Check if room is already rented to a different household
-      if (room.trangThai === 'OCCUPIED' && room.hoKhauId !== null && room.hoKhauId !== hoKhauIdInt) {
+      if (room.trangThai === 'da_thue' && room.hoKhauId !== null && room.hoKhauId !== hoKhauIdInt) {
         await transaction.rollback();
         console.log('Room already rented to different household:', {
           currentHoKhauId: room.hoKhauId,
@@ -290,7 +273,7 @@ const roomController = {
       await room.update({
         hoKhauId: hoKhauIdInt,
         ngayBatDau: ngayBatDau || new Date(),
-        trangThai: 'OCCUPIED'
+        trangThai: 'da_thue'
       }, { transaction });
       
       await transaction.commit();
@@ -301,11 +284,9 @@ const roomController = {
         include: [{
           model: HoKhau,
           as: 'hoKhau',
-          required: false,
           include: [{
             model: db.NhanKhau,
             as: 'chuHoInfo',
-            required: false,
             attributes: ['id', 'hoTen']
           }]
         }]
@@ -338,7 +319,7 @@ const roomController = {
       }
       
       // Check if room is actually rented
-      if (room.trangThai !== 'OCCUPIED' || !room.hoKhauId) {
+      if (room.trangThai !== 'da_thue' || !room.hoKhauId) {
         return res.status(400).json({ message: 'Phòng không được thuê' });
       }
       
@@ -346,7 +327,7 @@ const roomController = {
       await room.update({
         hoKhauId: null,
         ngayKetThuc: ngayKetThuc || new Date(),
-        trangThai: 'AVAILABLE'
+        trangThai: 'trong'
       });
       
       res.json({ message: 'Giải phóng phòng thành công', room });
@@ -363,13 +344,13 @@ const roomController = {
       const totalRooms = await Room.count();
       
       // Get count of rented rooms
-      const rentedRooms = await Room.count({ where: { trangThai: 'OCCUPIED' } });
+      const rentedRooms = await Room.count({ where: { trangThai: 'da_thue' } });
       
       // Get count of available rooms
-      const availableRooms = await Room.count({ where: { trangThai: 'AVAILABLE' } });
+      const availableRooms = await Room.count({ where: { trangThai: 'trong' } });
       
       // Get count of rooms under maintenance
-      const maintenanceRooms = await Room.count({ where: { trangThai: 'MAINTENANCE' } });
+      const maintenanceRooms = await Room.count({ where: { trangThai: 'bao_tri' } });
       
       // Get distribution of rooms by floor
       const roomsByFloor = await Room.findAll({
@@ -415,8 +396,7 @@ const roomController = {
         });
       }
 
-      // Note: nguoiThue field doesn't exist in database, using moTa instead
-      await room.update({ moTa: nguoiThue });
+      await room.update({ nguoiThue });
 
       // Fetch updated room with associations
       const updatedRoom = await Room.findByPk(id, {

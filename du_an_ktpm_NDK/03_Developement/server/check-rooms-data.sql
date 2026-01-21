@@ -41,3 +41,8 @@ FROM "Rooms" r
 LEFT JOIN "HoKhau" h ON r."hoKhauId" = h."soHoKhau"
 ORDER BY r."soPhong";
 
+
+
+
+
+

@@ -24,3 +24,8 @@ DROP TABLE IF EXISTS "SequelizeMeta" CASCADE;
 -- Thông báo hoàn thành
 SELECT 'All tables dropped successfully!' AS message;
 
+
+
+
+
+

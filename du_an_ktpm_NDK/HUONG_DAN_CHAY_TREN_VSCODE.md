@@ -14,7 +14,7 @@
 ### **2. Mở Project Trong VS Code**
 1. Mở Visual Studio Code
 2. File → Open Folder
-3. Chọn thư mục: `anbinh93-Project-IT4082-87836db\anbinh93-Project-IT4082-87836db\03_Developement`
+3. Chọn thư mục: bạn đã lưulưu
 
 ---
 

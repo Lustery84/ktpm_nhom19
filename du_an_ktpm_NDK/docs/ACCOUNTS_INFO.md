@@ -119,29 +119,6 @@ curl -X POST http://localhost:8000/api/auth/login \
    - Password: `admin123`
 3. **Bắt đầu quản lý**: Chọn menu bên trái để truy cập các chức năng
 
----
-
-## 🔧 Troubleshooting
-
-### Nếu Backend không hoạt động:
-```bash
-cd /Users/nguyenbinhan/Workspace/Project-IT4082/03_Developement/server
-node server.js
-```
-
-### Nếu Frontend không hoạt động:
-```bash  
-cd /Users/nguyenbinhan/Workspace/Project-IT4082/03_Developement/fe
-npm run dev
-```
-
-### Reset Database (nếu cần):
-```bash
-cd /Users/nguyenbinhan/Workspace/Project-IT4082/03_Developement/server
-npx sequelize-cli db:migrate:undo:all
-npx sequelize-cli db:migrate
-npx sequelize-cli db:seed:all
-```
 
 ---
 
